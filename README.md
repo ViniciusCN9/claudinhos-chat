@@ -4,6 +4,8 @@
 
 # Claudinhos Chat
 
+Desenvolvido por: [@ViniciusCN9](https://github.com/ViniciusCN9) e [@Guilherme-Zamboni](https://github.com/Guilherme-Zamboni)
+
 O Claudinhos Chat e um chat cômico inspirado nos chatbots com IA atuais, mas com personalidade propria: ele responde perguntas gerais, preserva o historico das conversas e opera com um tom bem-humorado definido por prompt, usando colegas como referencia para analogias, piadas e parodias.
 
 O projeto foi construido como uma aplicacao web em Django com persistencia em PostgreSQL e integracao com Ollama, permitindo usar um modelo local e um modelo em nuvem a partir da mesma interface. A ideia central e simples: conversar com uma IA em ambiente controlado, com contexto limitado por conversa, infra reproduzivel via Docker e codigo organizado em camadas claras.
