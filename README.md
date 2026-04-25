@@ -115,13 +115,13 @@ O historico persistido e diferente do contexto ativo enviado ao modelo.
 ```mermaid
 flowchart TD
 	A[Carregar conversa] --> B[Reservar budget de tokens]
-	B --> C[Adicionar system prompt se couber]
-	C --> D[Iterar mensagens da mais recente para a mais antiga]
+	B --> C[Adicionar system prompt]
+	C --> D[Iterar mensagens]
 	D --> E{Ainda cabe no budget?}
 	E -- Sim --> F[Adicionar ao contexto]
 	E -- Nao --> G[Parar selecao]
 	F --> D
-	G --> H[Enviar contexto final ao modelo]
+	G --> H[Enviar contexto ao modelo]
 ```
 
 ## Estrutura do Banco de Dados
