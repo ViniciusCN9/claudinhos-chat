@@ -1,0 +1,94 @@
+services:
+  ollama:
+    image: ollama/ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  ollama-init:
+    image: ollama/ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+    entrypoint:
+      - /bin/sh
+      - -c
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_LOCAL_MODEL: ${OLLAMA_LOCAL_MODEL:-gemma3:1b}
+    command:
+      - |
+        ollama pull "$${OLLAMA_LOCAL_MODEL}"
+        printf 'ok\n' | ollama run "$${OLLAMA_LOCAL_MODEL}" >/dev/null
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
+      postgres-init:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      OLLAMA_BASE_URL: http://ollama:11434
+    ports:
+      - "${APP_PORT:-18080}:8000"
+
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-claudinhos_chat}
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  postgres-init:
+    image: postgres:17
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    environment:
+      PGPASSWORD: ${DATABASE_PASSWORD:-postgres}
+      DATABASE_NAME: ${DATABASE_NAME:-claudinhos_chat}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+    volumes:
+      - ./script.sql:/docker-entrypoint-initdb.d/01-script.sql:ro
+    command: >
+      sh -c
+      "psql
+      --host=postgres
+      --port=$${DATABASE_PORT}
+      --username=$${DATABASE_USER}
+      --dbname=$${DATABASE_NAME}
+      --file=/docker-entrypoint-initdb.d/01-script.sql"
+
+volumes:
+  postgres_data:
+  ollama_data:

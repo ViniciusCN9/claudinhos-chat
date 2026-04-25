@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Claudinhos Chat{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'logo/icon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+    <div class="app-shell">
+        {% block content %}{% endblock %}
+    </div>
+    <script src="{% static 'js/chat.js' %}" defer></script>
+</body>
+</html>

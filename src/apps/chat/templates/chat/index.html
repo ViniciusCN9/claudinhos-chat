@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Claudinhos Chat{% endblock %}
+
+{% block content %}
+<main class="layout" data-chat-app>
+    <aside class="sidebar panel panel-glow">
+        <div class="brand-block sidebar-header">
+            <img src="{% static 'logo/logo.svg' %}" alt="Claudinhos Chat" class="sidebar-logo">
+        </div>
+
+        <a href="{% url 'chat:home' %}" class="button button-primary sidebar-action">Novo chat</a>
+
+        <div class="sidebar-body">
+            <div class="sidebar-conversations {% if not conversations %}is-empty{% endif %}">
+                {% if conversations %}
+                    <div class="conversation-list">
+                        {% for conversation in conversations %}
+                            <a href="{{ conversation.get_absolute_url }}" class="conversation-card {% if selected_conversation and conversation.id == selected_conversation.id %}is-active{% endif %}">
+                                <div>
+                                    <strong>{{ conversation.title }}</strong>
+                                    <p>{{ conversation.model_label }}</p>
+                                </div>
+                                <span>{{ conversation.updated_at|date:'d/m H:i' }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="sidebar-carousel" data-sidebar-carousel>
+                <img
+                    src="{% static 'image/START-01.png' %}"
+                    alt="Claudinhos avatar"
+                    class="sidebar-carousel-image"
+                    data-sidebar-carousel-image
+                >
+            </div>
+        </div>
+    </aside>
+
+    <section class="chat-panel panel panel-main {% if not selected_conversation %}is-neutral{% endif %}">
+        {% if selected_conversation %}
+            <header class="chat-header">
+                <div class="chat-title-block">
+                    <h2>{{ selected_conversation.title }}</h2>
+                    <span class="badge badge-strong">{{ selected_model.label }}</span>
+                </div>
+            </header>
+
+            <div class="message-stream" data-message-stream>
+                {% for message in messages %}
+                    <article class="message-bubble message-{{ message.role }}">
+                        <div class="message-meta">
+                            <span class="message-time">{{ message.created_at|date:'d/m H:i' }}</span>
+                        </div>
+                        <p>{{ message.content|linebreaksbr }}</p>
+                    </article>
+                {% endfor %}
+            </div>
+
+            {% if assistant_error %}
+                <div class="alert-error" data-chat-error>{{ assistant_error }}</div>
+            {% else %}
+                <div class="alert-error hidden" data-chat-error></div>
+            {% endif %}
+
+            <form method="post" action="{% url 'chat:message_create' selected_conversation.id %}" class="composer" data-message-form data-conversation-id="{{ selected_conversation.id }}">
+                {% csrf_token %}
+                <div class="composer-input-wrap">
+                    {{ message_form.content }}
+                    <button type="submit" class="button button-primary composer-submit" aria-label="Enviar mensagem"><span>&#8250;</span></button>
+                </div>
+            </form>
+        {% else %}
+            <div class="hero-empty panel panel-hero neutral-shell">
+                <form method="post" action="{% url 'chat:conversation_list_create' %}" class="launcher-form" data-create-conversation-form>
+                    {% csrf_token %}
+                    <div class="launcher-intro">
+                        <img src="{% static 'logo/icon.svg' %}" alt="Icone Claudinhos Chat" class="launcher-intro-icon">
+                        <p>Fala meu querido, sinuquinha hoje?</p>
+                    </div>
+                    <div class="launcher-input-wrap">
+                        {{ conversation_form.content }}
+                        <button type="submit" class="button button-primary launcher-submit" aria-label="Enviar primeira mensagem"><span>&#8250;</span></button>
+                    </div>
+                    <div class="launcher-controls">
+                        {{ conversation_form.model_name }}
+                    </div>
+
+                    {% if conversation_form.errors %}
+                        <div class="inline-error" data-create-error>Revise a mensagem inicial e o modelo.</div>
+                    {% elif assistant_error %}
+                        <div class="inline-error" data-create-error>{{ assistant_error }}</div>
+                    {% else %}
+                        <div class="inline-error hidden" data-create-error></div>
+                    {% endif %}
+                </form>
+            </div>
+        {% endif %}
+    </section>
+</main>
+
+<script id="sidebar-carousel-config" type="application/json">
+    {
+        "start": [
+            "{% static 'image/START-01.png' %}",
+            "{% static 'image/START-02.png' %}"
+        ],
+        "thinking": [
+            "{% static 'image/01.png' %}",
+            "{% static 'image/02.png' %}",
+            "{% static 'image/03.png' %}",
+            "{% static 'image/04.png' %}",
+            "{% static 'image/05.png' %}",
+            "{% static 'image/06.png' %}",
+            "{% static 'image/07.png' %}",
+            "{% static 'image/08.png' %}"
+        ],
+        "end": [
+            "{% static 'image/END-01.png' %}",
+            "{% static 'image/END-02.png' %}"
+        ]
+    }
+</script>
+{% endblock %}
